@@ -112,7 +112,7 @@ public class JarMain implements Runnable {
             outStream.close();
             file.deleteOnExit();
         }
-        debug(entry.getName() + " extracted to " + file.getPath());
+        if (false) debug(entry.getName() + " extracted to " + file.getPath());
         return file.toURI().toURL();
     }
 
@@ -126,7 +126,7 @@ public class JarMain implements Runnable {
         ClassLoader loader = new URLClassLoader(jars);
         Class scriptingContainerClass = Class.forName("org.jruby.embed.ScriptingContainer", true, loader);
         Object scriptingContainer = scriptingContainerClass.newInstance();
-
+        debug("scripting container class loader urls: " + Arrays.toString(jars));
         invokeMethod(scriptingContainer, "setArgv", (Object) args);
         invokeMethod(scriptingContainer, "setClassLoader", new Class[] { ClassLoader.class }, loader);
         return scriptingContainer;
@@ -199,7 +199,7 @@ public class JarMain implements Runnable {
     }
     
     protected static Object invokeMethod(final Object self, final String name, final Object... args) 
-        throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        throws NoSuchMethodException, IllegalAccessException, Exception {
         
         final Class[] signature = new Class[args.length];
         for (int i = 0; i<args.length; i++) signature[i] = args[i].getClass();
@@ -207,10 +207,18 @@ public class JarMain implements Runnable {
     }
 
     protected static Object invokeMethod(final Object self, final String name, final Class[] signature, final Object... args) 
-        throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        
+        throws NoSuchMethodException, IllegalAccessException, Exception {
         Method method = self.getClass().getDeclaredMethod(name, signature);
-        return method.invoke(self, args);
+        try {
+            return method.invoke(self, args);
+        }
+        catch (InvocationTargetException e) {
+            Throwable target = e.getTargetException();
+            if (target instanceof Exception) {
+                throw (Exception) target;
+            }
+            throw e;
+        }
     }
     
     static boolean isDebug() {
