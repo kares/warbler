@@ -54,6 +54,8 @@ end
 # Make sure jar gets compiled before the gem is built
 task :build => :jar
 
+task :gem => :build
+
 require 'rdoc/task'
 RDoc::Task.new(:docs) do |rd|
   rd.rdoc_dir = "doc"
