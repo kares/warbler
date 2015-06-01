@@ -1,4 +1,6 @@
 sudo: false
+language: ruby
+script: ruby -rubygems -rbundler/setup -S rake spec
 rvm:
   - jruby-1.7.8
 branches:
